@@ -12,6 +12,9 @@ from graphs import initialize_graph
 from hamiltonians import cost_hamiltonian
 from qaoa import qaoa_run
 
+from warm_start import lp_initialize_state, lp_relaxed_mixer
+from variance_landscape import energy_variance_in_sample, full_energy_landscape_shell, plot_variance
+
 node_list = {
     0: 1.0,
     1: 1.0,
@@ -55,8 +58,33 @@ show_figs = {
 
 
 cost_op = cost_hamiltonian(graph, penalizer)
-mixer_op = None
 
-one_run = qaoa_run(graph, cost_op, mixer_op, reps=3, n_restarts=10, opt_shots=10000, 
-        sample_shots=10000, backend=AerSimulator(), rng=np.random.default_rng(), show_figs=show_figs)
+## Standard QAOA
+# mixer_op = None
+# initial_state = None
+
+## WS-QAOA
+initial_state, angles = lp_initialize_state(graph, eps=0.25)
+mixer_op = lp_relaxed_mixer(graph, angles)
+
+p = 3
+
+one_run = qaoa_run(graph, cost_op, mixer_op, initial_state, reps=p, n_restarts=2000, opt_shots=10000, 
+        sample_shots=10000, backend=AerSimulator(), rng=np.random.default_rng(), show_figs=None)
 print(f'{one_run}\n')
+
+
+circuit = one_run["circuit"]
+theta0 = one_run["optimal_parameters"]
+radii, variances = full_energy_landscape_shell(2*p, circuit, cost_op, theta0, num_samples=10, backend=AerSimulator(), estimator_shots=10000)
+
+# np.savez_compressed('energy_landscape_data.npz', radii=radii, variances=variances)
+plot_variance(radii, variances)
+
+
+# If file from remote
+# data = np.load(r'C:\Users\Alban Rauch\Documents\Alban\Polytechnique\STAGE2\QAOA\energy_landscape_shell__p_4.npz')
+# radii = data['radii']
+# variances = data['variances']
+# data.close()
+# plot_variance(radii, variances)

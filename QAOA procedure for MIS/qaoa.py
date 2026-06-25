@@ -27,19 +27,21 @@ def show_circuit(circuit):
 
 ### Build circuits ###
 
-def build_circuit(graph, cost_hamiltonian, mixer_hamiltonian, reps, backend):
-        
+def build_circuit(graph, cost_hamiltonian, mixer_hamiltonian, initial_state, reps, backend):
+
+    if initial_state is None: initial_state = QuantumCircuit(graph.num_nodes())
+    
     if mixer_hamiltonian is None:
         circuit = QAOAAnsatz(
             cost_operator=cost_hamiltonian, 
-            initial_state=QuantumCircuit(graph.num_nodes()),
+            initial_state=initial_state,
             reps=reps
         )
     else:
         circuit = QAOAAnsatz(
             cost_operator=cost_hamiltonian, 
             mixer_operator=mixer_hamiltonian, 
-            initial_state=QuantumCircuit(graph.num_nodes()),
+            initial_state=initial_state,
             reps=reps
         )
 
@@ -120,13 +122,21 @@ def sample_distribution(optimized_circuit, sample_shots, backend):
 
 ### Full QAOA run ###
 
-def qaoa_run(graph, cost_hamiltonian, mixer_hamiltonian, reps=2, n_restarts=1, opt_shots=10000, 
+def qaoa_run(graph, cost_hamiltonian, mixer_hamiltonian=None, initial_state=None, reps=2, n_restarts=1, opt_shots=10000, 
                 sample_shots=10000, backend=AerSimulator(), rng=np.random.default_rng(), show_figs=None):
     
-    show_figs = show_figs or []
+    if show_figs == None:
+        show_figs = {
+            "init_circ": False,
+            "transp_circ": False,
+            "energy_evo": False,
+            "opt_circ": False,
+            "config_dist": False,
+            "optimal_graph": False
+        }
     
     t0 = time.perf_counter()
-    circuit, candidate_circuit = build_circuit(graph, cost_hamiltonian, mixer_hamiltonian, 
+    circuit, candidate_circuit = build_circuit(graph, cost_hamiltonian, mixer_hamiltonian, initial_state, 
                                                         reps=reps, backend=backend)
     t1 = time.perf_counter()
     t_build = t1 - t0
@@ -199,9 +209,11 @@ def qaoa_run(graph, cost_hamiltonian, mixer_hamiltonian, reps=2, n_restarts=1, o
         "bitstring": tuple(most_likely_bitstring),
         "size": size,
         "legal": mis_is_legal(most_likely_bitstring, graph),
-        "best_cost": float(best_result.fun),
         "build_time": t_build,
         "classical_opt_time": t_opt,
         "sampling_time": t_sample,
         "total_time": t_build + t_opt + t_sample,
+        "best_cost": float(best_result.fun),
+        "optimal_parameters": best_result.x,
+        "circuit": candidate_circuit,
     }
