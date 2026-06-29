@@ -69,8 +69,8 @@ mixer_op = lp_relaxed_mixer(graph, angles)
 
 p = 3
 
-one_run = qaoa_run(graph, cost_op, mixer_op, initial_state, reps=p, n_restarts=2000, opt_shots=10000, 
-        sample_shots=10000, backend=AerSimulator(), rng=np.random.default_rng(), show_figs=None)
+one_run = qaoa_run(graph, cost_op, mixer_op, initial_state, reps=p, n_restarts=20, opt_shots=10000, 
+        sample_shots=10000, backend=AerSimulator(), rng=np.random.default_rng(), show_figs=show_figs)
 print(f'{one_run}\n')
 
 

@@ -1,6 +1,6 @@
 """
 hamiltonians.py
-=======
+===============
 Initialize the cost and mixer hamiltonians.
 """
 
