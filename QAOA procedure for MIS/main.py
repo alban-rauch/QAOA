@@ -8,7 +8,7 @@ import numpy as np
 
 from qiskit_aer import AerSimulator
 
-from graphs import initialize_graph
+from graphs import initialize_graph, random_graph_data
 from hamiltonians import cost_hamiltonian
 from qaoa import qaoa_run
 
@@ -41,6 +41,8 @@ edge_list = [
     (2, 6, 1.0),
     (3, 7, 1.0),
 ]
+
+node_list, edge_list = random_graph_data(8, 0.6)
 
 graph = initialize_graph(node_list, edge_list)
 

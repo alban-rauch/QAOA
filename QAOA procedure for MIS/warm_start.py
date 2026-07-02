@@ -87,6 +87,6 @@ def lp_relaxed_mixer(graph, angles):
     for i in graph.node_indices():
         theta = angles[i]
         qc.ry(-theta, i)
-        qc.rx(-2 * beta, i)
+        qc.rz(-2 * beta, i)
         qc.ry(theta, i)
     return qc
