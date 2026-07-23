@@ -8,51 +8,16 @@ import pennylane as qp
 from pennylane import numpy as np
 import matplotlib.pyplot as plt
 
+def measure_energies(cost_function, parameter_samples):
+    energies = np.array([cost_function(p) for p in parameter_samples])
+    print("Energies measured")
+    return energies
 
-def energy_variance_in_sample(cost_function, parameter_samples):
-
-    energies = np.array([
-        cost_function(params)
-        for params in parameter_samples
-    ])
-
+def variance(energies):
     return np.var(energies)
 
 
-
-def lhs_dist_r(n, theta0, r, num_samples):
-    bins = np.arange(num_samples)
-    design = np.zeros((num_samples, n))
-    design[:, 0] = bins
-    for d in range(1, n):
-        design[:, d] = np.random.permutation(bins)
-    offsets = np.random.uniform(0, 1, size=(num_samples, n))
-    normal = (design + offsets) / num_samples
-    return theta0 - r + normal * 2*r
-
-
-def full_energy_lanscape_hypercube(cost_function, theta0, num_samples):
-
-    n = theta0.size
-    # radii = np.linspace(0.1, np.pi, dist_steps)
-    part1 = np.linspace(0.005, 0.05, 10) * np.pi
-    part2 = np.linspace(0.05, 0.10, 30+1)[1:] * np.pi
-    part3 = np.linspace(0.10, 0.17, 30+1)[1:] * np.pi
-    part4 = np.linspace(0.17, 0.23, 30+1)[1:] * np.pi
-    part5 = np.linspace(0.23, 1.00, 80+1)[1:] * np.pi
-    radii = np.concatenate([part1, part2, part3, part4, part5])
-    
-    variances = []
-    for r in radii:
-        samples = lhs_dist_r(n, theta0, r, num_samples=num_samples)
-        var_r = energy_variance_in_sample(cost_function, samples)
-        variances.append(var_r)
-    return radii / np.pi, variances
-
-
-
-
-def lhs_shell_samples(n, theta0, r_inner, r_outer, num_samples):
+def lhs_shell_samples(n, flat_theta0, r_inner, r_outer, num_samples):
     bins = (np.arange(num_samples) + np.random.uniform(0, 1, num_samples)) / num_samples
     radii = (r_inner**n + bins * (r_outer**n - r_inner**n)) ** (1.0 / n)
     np.random.shuffle(radii)
@@ -60,31 +25,33 @@ def lhs_shell_samples(n, theta0, r_inner, r_outer, num_samples):
     directions = np.random.normal(size=(num_samples, n))
     directions /= np.linalg.norm(directions, axis=1, keepdims=True)
  
-    return theta0 + directions * radii[:, None]
+    samples = flat_theta0 + directions * radii[:, None]
+    return samples.reshape(num_samples, 2, n // 2)
 
     
 def full_energy_landscape_shell(cost_function, theta0, num_samples):
-    n = theta0.size
+    flat_theta0 = np.concatenate(theta0)
+    n = flat_theta0.size
     
-    # Adapt to make the curve more or less precise in specific regions
-    part1 = np.linspace(0.005, 0.05, 10) * np.pi
-    part2 = np.linspace(0.05, 0.10, 30+1)[1:] * np.pi
-    part3 = np.linspace(0.10, 0.17, 30+1)[1:] * np.pi
-    part4 = np.linspace(0.17, 0.23, 30+1)[1:] * np.pi
-    part5 = np.linspace(0.23, 1.00, 80+1)[1:] * np.pi
-    radii = np.concatenate([part1, part2, part3, part4, part5])
-        
+    radii = np.linspace(0.1, np.pi, 101)
+    
+    total_samples = []
+    idx = 0
+    indices = [0]
+    for i in range(len(radii) - 1):
+        r_samples = lhs_shell_samples(n, flat_theta0, radii[i], radii[i+1], num_samples=num_samples)
+        total_samples.extend(r_samples)
+        idx = len(total_samples)
+        indices.append(idx)
+    
+    energies = measure_energies(cost_function, total_samples)
     variances = []
-    r_inner = 0.0
-    
-    for r_outer in radii:
-        shell_samples = lhs_shell_samples(n, theta0, r_inner, r_outer, num_samples)
-        var_r = energy_variance_in_sample(cost_function, shell_samples)
+    for i in range(len(radii)-1):
+        select_energies = energies[indices[i]:indices[i+1]]
+        var_r = variance(select_energies)
         variances.append(var_r)
-        r_inner = r_outer
-        print(r_outer, 'done')
- 
-    return radii / np.pi, variances
+
+    return radii[1:] / np.pi, variances
 
 
 def plot_variance(radii, variances):
