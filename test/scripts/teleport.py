@@ -1,6 +1,7 @@
 import pennylane as qp
+import numpy as np
 
-dev = qp.device("lightning.amdgpu", wires=3)
+dev = qp.device("lightning.qubit", wires=3)
 
 @qp.qnode(dev)
 def teleportation_circuit(theta):
@@ -10,7 +11,7 @@ def teleportation_circuit(theta):
 
     # Prepare Entanglement State (A, B): Bell state |phi^+> ~ |00> + |11> 
     qp.Hadamard(wires=1)
-    qp.CNOT(wires=[0, 1])
+    qp.CNOT(wires=[1, 2])
 
     # Teleportation protocol
     qp.CNOT(wires=[0, 1])
@@ -26,5 +27,18 @@ def teleportation_circuit(theta):
 
 
 ## Expected output:
-##  [[cos^2(theta/2), 0.5*sin(theta)],
-##   [0.5*sin(theta), sin^2(theta/2)]]
+##  [[cos^2(theta/2), 0.5*sin(theta)],
+##   [0.5*sin(theta), sin^2(theta/2)]]
+
+theta = 0.2
+
+result = teleportation_circuit(theta)
+
+theory = [
+    [np.cos(theta/2)**2, 0.5*np.sin(theta)], 
+    [0.5*np.sin(theta), np.sin(theta/2)**2]
+    ]
+
+print(f"Result: {result}")
+
+print(f"Theory: {theory}")
