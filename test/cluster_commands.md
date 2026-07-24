@@ -29,7 +29,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Leave: `deactivate`
 
 #### <font color="silver"> Import files: </font>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Import from Github into local: `git clone https://github.com/OWNER/REPOSITORY.git` \
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Import from Github into local: `git clone https://github.com/alban-rauch/qaoa-mis.git` \
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Copy from local into cluster: `scp -r qaoa-mis arauch@AMDmuncl03:~`
 
 ### <font color="orange"> Submitting a job: </font>
