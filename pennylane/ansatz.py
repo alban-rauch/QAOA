@@ -74,11 +74,11 @@ def make_circuit(layer_structure):
 # qp.draw_mpl(circuit, layer='device')([[0.3, 0.4], [0.5, 0.1]])
 # plt.show()
 
-def estimator(circuit, params, wires, p, cost_h, mixer_layer, angles):
+def estimator(params, circuit, wires, p, cost_h, mixer_layer, angles):
     circuit(wires, p, params, cost_h, mixer_layer, angles)
     return qp.expval(cost_h)
 
-def sampler(circuit, params, wires, p, cost_h, mixer_layer, angles):
+def sampler(params, circuit, wires, p, cost_h, mixer_layer, angles):
     circuit(wires, p, params, cost_h, mixer_layer, angles)
     return qp.probs(wires=wires)
 

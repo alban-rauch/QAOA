@@ -145,7 +145,7 @@ def linear_interpolation(params_list, p):     # Convert from p-dimensional gamma
     new_params[:, -1] = params_arr[:, -1]
     for i in range(1, p):
         new_params[:, i] = (i / p) * params_arr[:, i-1] + ((p-i) / p) * params_arr[:, i]
-    return new_params.to_list()
+    return new_params.tolist()
 
 def general_linear_interpolation(params_list, p, q):     # Convert from p-dimensional gamma and beta to (p+1)-dimensional
     params_arr = np.array(params_list)
@@ -156,7 +156,7 @@ def general_linear_interpolation(params_list, p, q):     # Convert from p-dimens
     ceilings = np.minimum(floors + 1, p-1)
     distances = positions - floors
     new_params = (1 - distances) * params_arr[:, floors] + distances * params_arr[:, ceilings]
-    return new_params.to_list()
+    return new_params.tolist()
 
 def interp_params(cost_function_p, optimizer, opt_steps, q, silence):
     if q == 1:
@@ -177,8 +177,8 @@ def interp_params(cost_function_p, optimizer, opt_steps, q, silence):
     print(f"Layer {q} optimization...")
     prev_gamma = prev_layer_params[0]
     prev_beta = prev_layer_params[1]
-    new_gamma, new_beta = linear_interpolation(prev_gamma, prev_beta, q-1)
-    init_params = np.array([new_gamma, new_beta], requires_grad=True)
+    new_params = linear_interpolation([prev_gamma, prev_beta], q-1)
+    init_params = np.array(new_params, requires_grad=True)
     opt_params, energies = run_optimization(
             cost_function=cost_function_p(q),
             init_params=init_params,

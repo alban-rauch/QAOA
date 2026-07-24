@@ -182,6 +182,7 @@ def standard_qaoa(problem, strategy, apparatus, silence=False):
     elif param_transfer_type == 'interp':
         cost_function_p = lambda p: partial(
                 cost_qnode,
+                circuit=circuit,
                 wires=wires,
                 p=p,
                 cost_h=cost_h,
@@ -195,6 +196,7 @@ def standard_qaoa(problem, strategy, apparatus, silence=False):
     elif param_transfer_type == 'fourier':
         cost_function_p = lambda p: partial(
                 cost_qnode,
+                circuit=circuit,
                 wires=wires,
                 p=p,
                 cost_h=cost_h,
@@ -359,18 +361,18 @@ def y_standard_qaoa(problem, strategy, apparatus, silence=False):
 
     # -----------------  STEP 1:  Build QAOA ansatz  ----------------- #
 
-    cost_h, mixer_layer, y_mixer, angles = build_hamiltonians(
+    cost_h, mixer_layer, y_mixer, angles = y_build_hamiltonians(
         graph,
         penalizer, 
         constrained, 
         relaxation_type, 
         )
     
-    circuit = qa.make_circuit(qa.expressive_qaoa_layer)
+    circuit = qa.make_expressive_circuit(qa.expressive_qaoa_layer)
 
     dev = qp.device(device, wires=wires)
 
-    cost_qnode, cost_function = estimation_framework(
+    cost_qnode, cost_function = y_estimation_framework(
         wires,
         p, 
         dev, 
@@ -381,7 +383,7 @@ def y_standard_qaoa(problem, strategy, apparatus, silence=False):
         angles
         )
 
-    sampling_qnode, probability_circuit = sampling_framework(
+    sampling_qnode, probability_circuit = y_sampling_framework(
         wires, 
         p, 
         dev, 
@@ -419,6 +421,7 @@ def y_standard_qaoa(problem, strategy, apparatus, silence=False):
     elif param_transfer_type == 'interp':
         cost_function_p = lambda p: partial(
                 cost_qnode,
+                circuit=circuit,
                 wires=wires,
                 p=p,
                 cost_h=cost_h,
@@ -432,6 +435,7 @@ def y_standard_qaoa(problem, strategy, apparatus, silence=False):
     elif param_transfer_type == 'fourier':
         cost_function_p = lambda p: partial(
                 cost_qnode,
+                circuit=circuit,
                 wires=wires,
                 p=p,
                 cost_h=cost_h,
